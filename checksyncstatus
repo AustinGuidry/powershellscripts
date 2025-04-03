@@ -1,0 +1,16 @@
+Import-Module Microsoft.Graph.Authentication
+Import-Module Microsoft.Graph.Users
+Connect-MgGraph -Scopes "User.Read.All", "Directory.Read.All" -DeviceCode
+
+$email = Read-Host -Prompt "Enter the user's email address"
+Write-Output "Checking..."
+
+$user = Get-MgUser -UserPrincipalName $email 
+if ($user) {
+  $syncStatus = if ($user.OnPremisesSyncEnabled) { "On-Premises" } else { "Cloud" }
+
+  Write-Output "User: $($user.DisplayName)"
+  Write-Output "Email: $($user.UserPrincipalName)"
+  Write-Output "Sync Status: $SyncStatus
+    } else { 
+        Write-Output "User not in Microsoft 365. Please verify username + email." 
