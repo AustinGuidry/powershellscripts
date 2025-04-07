@@ -7,10 +7,10 @@ Write-Host "Connected to MS Graph." -ForegroundColor Green
 
 Write-Host "Retrieving user information..." -ForegroundColor Cyan
 
-$usRegion = "US"
-$allUsers = @()
+$filter = "usageLocation eq 'US' and onPremisesSyncEnabled eq false"
+$properties = "Id,DisplayName,UserPrincipalName,UsageLocation,OnPremisesSyncEnabled,LastPasswordChangeDateTime"
 
-$users = Get-MgUser -All -Property "Id,DisplayName,UserPrincipalName,UserType,UsageLocation,OnPremisesSyncEnabled,LastPasswordChangeDateTime"
+$users = Get-MgUser -All -Filter $filter -Property $properties
 
 foreach ($user in $users) {
     if (
