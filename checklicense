@@ -1,0 +1,29 @@
+Import-Module Microsoft.Graph
+
+Write-Host "Connecting to MS Graph..." -ForegroundColor Cyan
+Connect-MgGraph -Scopes "User.Read.All" -UseDeviceCode
+Write-Host "Connected to MS Graph." -ForegroundColor Green
+
+$userInput = Read-Host "Enter the user's email"
+Write-Host "Looking up license info for '$userInput'..." -ForegroundColor Cyan
+
+try {
+    $user = Get-MgUser -UserId $userInput -Property Id,DisplayName,UserPrincipalName
+} catch {
+    Write-Host "User not found or error retrieving user." -ForegroundColor Red
+    Disconnect-MgGraph
+    return
+}
+
+Write-Host "Found $($user.DisplayName) <$($user.UserPrincipalName)>"
+Write-Host "Retrieving assigned licenses..." -ForegroundColor Cyan
+
+$assignedLicenses = Get-MgUserLicenseDetail -UserId $user.Id
+
+if ($assignedLicenses.Count -eq 0) {
+    Write-Host "No licenses assigned to this user." -ForegroundColor Yellow
+} else {
+    $assignedLicenses | Select-Object SkuPartNumber, SkuId | Format-Table -AutoSize
+}
+
+Disconnect-MgGraph
