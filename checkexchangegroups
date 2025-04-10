@@ -1,0 +1,37 @@
+Import-Module Microsoft.Graph
+
+Write-Host "Connecting to MS Graph..." -ForegroundColor Cyan
+Connect-MgGraph -Scopes "User.Read.All", "Group.Read.All", "Directory.Read.All" -UseDeviceCode
+Write-Host "Connected to MS Graph." -ForegroundColor Green
+
+$userInput = Read-Host "Enter the user's email address"
+Write-Host "Looking up user '$userInput'..." -ForegroundColor Cyan
+
+try {
+    $user = Get-MgUser -UserId $userInput -Property Id,DisplayName,UserPrincipalName
+} catch {
+    Write-Host "User not found or error retrieving user." -ForegroundColor Red
+    Disconnect-MgGraph
+    return
+}
+
+Write-Host ""
+Write-Host "User: $($user.DisplayName) <$($user.UserPrincipalName)>" -ForegroundColor Cyan
+Write-Host ""
+
+Write-Host "Retrieving Exchange group memberships..." -ForegroundColor Cyan
+
+$groups = Get-MgUserMemberOf -UserId $user.Id -All | Where-Object { $_.'@odata.type' -eq "#microsoft.graph.group" }
+
+if ($groups.Count -eq 0) {
+    Write-Host "This user is not a member of any groups." -ForegroundColor Yellow
+} else {
+    Write-Host "Member of:" -ForegroundColor Green
+    foreach ($group in $groups) {
+        $groupName = $group.DisplayName
+        $groupEmail = if ($group.Mail) { $group.Mail } else { "(no email address)" }
+        Write-Host "- $groupName ($groupEmail)"
+    }
+}
+
+Disconnect-MgGraph
