@@ -1,16 +1,25 @@
+#Hard matches an existing cloud-only 365 account to an on-prem AD account.
 
 Import-Module ActiveDirectory
+Import-Module Microsoft.Graph.Authentication
+Import-Module Microsoft.Graph.Users
+
 Connect-MgGraph -Scopes "User.ReadWrite.All"
 
 $userEmail = Read-Host "Enter the user's email address (same for AD and 365)"
-$cloudUser = Get-MgUser -UserId $userEmail
+
+#SilentlyContinue so a missing user drops through to the check below rather
+#than dumping a raw Graph error to the screen first.
+$cloudUser = Get-MgUser -UserId $userEmail -ErrorAction SilentlyContinue
 
 if ($null -eq $cloudUser) {
     Write-Error "Cloud user '$userEmail' not found."
     return
 }
 
-$onPremUser = Get-ADUser -Filter { UserPrincipalName -eq $userEmail }
+#A string filter rather than a script block - the { } form is fragile with
+#variables and is best avoided with the AD cmdlets.
+$onPremUser = Get-ADUser -Filter "UserPrincipalName -eq '$userEmail'" -Properties ObjectGUID, SamAccountName
 
 if ($null -eq $onPremUser) {
     Write-Error "On-prem AD user with '$userEmail' not found."
@@ -32,4 +41,4 @@ if ($confirm -ne 'y') {
 
 Update-MgUser -UserId $cloudUser.Id -OnPremisesImmutableId $immutableId
 
-Write-Host "Success! $useremail is now linked between on-prem AD and Office 365."
+Write-Host "Success! $userEmail is now linked between on-prem AD and Office 365."
