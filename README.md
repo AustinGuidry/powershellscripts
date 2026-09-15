@@ -21,6 +21,12 @@ The ones that I've put in this repository are the ones that I've gotten to work 
 | `graph_convertaccount.ps1` | Hard matches a cloud-only account to an on-prem AD account |
 | `testgraph.ps1` | Quick "is Graph working at all" check |
 
+**Exchange Online** -- these need the `ExchangeOnlineManagement` module:
+
+| Script | What it does |
+| --- | --- |
+| `addtoemaillist.ps1` | Adds a user to a distribution list |
+
 **Active Directory** -- these need RSAT / the `ActiveDirectory` module:
 
 | Script | What it does |
